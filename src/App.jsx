@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Clipboard, FileText, Image, Loader2, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, Clipboard, FileText, Image, Loader2, Lock, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
@@ -159,6 +159,7 @@ function SectionHeader({ title, children }) {
 }
 
 export default function App() {
+  const [apiKey, setApiKey] = useState("");
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [isGenerating, setIsGenerating] = useState(false);
@@ -191,6 +192,7 @@ export default function App() {
 
   function validate() {
     const nextErrors = {};
+    if (!apiKey.trim()) nextErrors.apiKey = "Paste your OpenAI API key to generate a listing.";
     if (!form.productName.trim()) nextErrors.productName = "Product name is required.";
     if (!form.features.trim()) nextErrors.features = "Add at least one product feature.";
     if (!form.platform) nextErrors.platform = "Choose a target platform.";
@@ -269,10 +271,11 @@ export default function App() {
     }
 
     try {
-      const response = await fetch("/api/generate-listing", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey.trim()}`
         },
         body: JSON.stringify({
           model: "gpt-4o",
@@ -331,6 +334,26 @@ export default function App() {
             Generate optimized product listings from your raw inputs.
           </h1>
         </header>
+
+        <section className="mb-6 rounded-lg bg-white p-5 shadow-soft">
+          <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900" htmlFor="apiKey">
+            <Lock size={16} className="text-indigo-600" />
+            OpenAI API Key
+          </label>
+          <input
+            id="apiKey"
+            type="password"
+            value={apiKey}
+            onChange={(event) => {
+              setApiKey(event.target.value);
+              setErrors((current) => ({ ...current, apiKey: "" }));
+            }}
+            className="min-h-11 w-full rounded-md border border-slate-200 px-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            placeholder="sk-..."
+          />
+          <p className="mt-2 text-sm text-slate-500">Your key is never stored by this app and is sent directly to OpenAI.</p>
+          <FieldError>{errors.apiKey}</FieldError>
+        </section>
 
         <form
           className="rounded-lg bg-white p-5 shadow-soft"
