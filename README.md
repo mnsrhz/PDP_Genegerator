@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Paste an OpenAI API key into the app. The key is kept only in React component state and is used directly for the OpenAI request from the browser.
+The app calls the Vercel API proxy at `https://pdp-openai-api.vercel.app/api/generate-listing`. Store the OpenAI API key in that Vercel project's `OPENAI_API_KEY` environment variable.
 
 ## Build
 
